@@ -3,9 +3,7 @@ import os
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
-# -------------------------------
-# Load trained model
-# -------------------------------
+
 recognizer = cv2.face.LBPHFaceRecognizer_create()
 recognizer.read("models/face_recognizer.yml")
 label_map = np.load("models/label_map.npy", allow_pickle=True).item()
