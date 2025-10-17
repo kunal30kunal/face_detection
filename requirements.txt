@@ -1,11 +1,13 @@
-streamlit
-opencv-python-headless
-numpy
-pandas
+streamlit==1.50.0
+opencv-python-headless==4.12.0.88
+numpy==2.3.4
+pandas==2.3.3
 deepface==0.0.93
-tensorflow==2.15.0
-tf-keras
-protobuf<4.0.0
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+joblib==1.4.2
+
 
 
 
