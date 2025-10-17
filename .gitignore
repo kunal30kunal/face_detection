@@ -26,3 +26,15 @@ label_dict.pkl
 # OS junk
 .DS_Store
 Thumbs.db
+# Ignore model/data artifacts
+models/
+outputs/
+*.yml
+*.h5
+*.pkl
+*.pt
+*.npy
+*.jpg
+*.jpeg
+*.png
+__pycache__/
