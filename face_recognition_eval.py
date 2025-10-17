@@ -1,46 +1,51 @@
-import cv2
 import os
-import numpy as np
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import cv2
+import pickle
 
+DATASET_DIR = "my_dataset"
 
+print("[INFO] Loading trained model and label data...")
 recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.read("models/face_recognizer.yml")
-label_map = np.load("models/label_map.npy", allow_pickle=True).item()
+recognizer.read("face_recognizer.yml")
 
-# -------------------------------
-# Load test data
-# -------------------------------
-test_dir = "my_dataset"  # ✅ updated
-true_labels = []
-pred_labels = []
+with open("label_dict.pkl", "rb") as f:
+    label_dict = pickle.load(f)
 
-print("📊 Evaluating on test images...")
+print("[INFO] Starting model evaluation...")
 
-for person_name in os.listdir(test_dir):
-    person_folder = os.path.join(test_dir, person_name, "test")
-    if not os.path.exists(person_folder):
+reverse_label_dict = {v: k for k, v in label_dict.items()}
+
+correct = 0
+total = 0
+
+for person_name in os.listdir(DATASET_DIR):
+    normalized_name = person_name.lower().replace(" ", "_").replace(".", "_")
+
+    if normalized_name not in label_dict:
+        print(f"[WARN] Skipping '{person_name}' — not found in label dictionary.")
         continue
 
-    for img_name in os.listdir(person_folder):
-        img_path = os.path.join(person_folder, img_name)
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    label = label_dict[normalized_name]
+    test_dir = os.path.join(DATASET_DIR, person_name, "test")
+
+    if not os.path.exists(test_dir):
+        continue
+
+    for img_name in os.listdir(test_dir):
+        img_path = os.path.join(test_dir, img_name)
+        img = cv2.imread(img_path)
         if img is None:
             continue
 
-        img = cv2.resize(img, (200, 200))
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        pred_label, confidence = recognizer.predict(gray)
+        total += 1
+        if pred_label == label:
+            correct += 1
 
-        # Predict
-        label_id, confidence = recognizer.predict(img)
-        pred_name = label_map.get(label_id, "Unknown")
+if total == 0:
+    print("\n⚠️ No valid test images found. Please verify dataset structure.")
+else:
+    accuracy = (correct / total) * 100
+    print(f"\n✅ Evaluation complete! Accuracy: {accuracy:.2f}%")
 
-        true_labels.append(person_name)
-        pred_labels.append(pred_name)
-
-# -------------------------------
-# Evaluate Results
-# -------------------------------
-print("\n✅ Evaluation Results:")
-print("Accuracy:", accuracy_score(true_labels, pred_labels) * 100, "%")
-print("\nClassification Report:\n", classification_report(true_labels, pred_labels))
-print("Confusion Matrix:\n", confusion_matrix(true_labels, pred_labels))

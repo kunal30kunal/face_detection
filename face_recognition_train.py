@@ -1,54 +1,54 @@
 import cv2
 import os
 import numpy as np
+import pickle
 
-# -------------------------------
-# PATH SETTINGS
-# -------------------------------
-dataset_dir = "my_dataset"  # ✅ updated
-model_save_path = "models/face_recognizer.yml"
-
-# -------------------------------
-# LOAD IMAGES & LABELS
-# -------------------------------
-faces = []
+DATASET_DIR = "my_dataset"
+features = []
 labels = []
-label_map = {}   # e.g. {0: "Kunal", 1: "Priya", 2: "Rahul"}
+label_dict = {}
+label_id = 0
 
-print("📦 Loading dataset...")
+print("dataset is loading")
 
-for idx, person_name in enumerate(os.listdir(dataset_dir)):
-    person_folder = os.path.join(dataset_dir, person_name)
-    if not os.path.isdir(person_folder):
+for person_name in os.listdir(DATASET_DIR):
+    person_dir = os.path.join(DATASET_DIR, person_name)
+    if not os.path.isdir(person_dir):
         continue
 
-    label_map[idx] = person_name
+    normalized_name = person_name.lower().replace(" ", "_").replace(".", "_")
 
-    for img_name in os.listdir(person_folder):
-        img_path = os.path.join(person_folder, img_name)
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        if img is None:
+    if normalized_name not in label_dict:
+        label_dict[normalized_name] = label_id
+        label_id += 1
+
+    for split in ["train", "test"]:
+        split_dir = os.path.join(person_dir, split)
+        if not os.path.exists(split_dir):
             continue
 
-        img = cv2.resize(img, (200, 200))
-        faces.append(img)
-        labels.append(idx)
+        for img_name in os.listdir(split_dir):
+            img_path = os.path.join(split_dir, img_name)
+            img = cv2.imread(img_path)
+            if img is None:
+                continue
 
-faces = np.array(faces)
-labels = np.array(labels)
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            features.append(gray)
+            labels.append(label_dict[normalized_name])
 
-print(f"✅ Dataset loaded: {len(faces)} images, {len(label_map)} persons")
+print(f"[INFO] Total classes: {len(label_dict)}")
+print("[INFO] Sample label mapping:", label_dict)
 
-# -------------------------------
-# TRAIN LBPH FACE RECOGNIZER
-# -------------------------------
-print("🧠 Training face recognizer...")
+
+with open("label_dict.pkl", "wb") as f:
+    pickle.dump(label_dict, f)
+
+
 recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.train(faces, labels)
+recognizer.train(features, np.array(labels))
+recognizer.save("face_recognizer.yml")
 
-# Save model and label map
-os.makedirs("models", exist_ok=True)
-recognizer.save(model_save_path)
-np.save("models/label_map.npy", label_map)
+print(" Model and labels saved.")
 
-print("✅ Model trained and saved at:", model_save_path)
+
