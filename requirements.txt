@@ -1,19 +1,7 @@
 streamlit
-numpy
-pandas
-matplotlib
-opencv-python
-opencv-contrib-python
-tensorflow
-keras
+opencv-python-headless
+opencv-contrib-python-headless
 deepface
-Pillow
-imutils
+numpy
 joblib
-scikit-learn
-protobuf
-h5py
-typing-extensions
-packaging
-tqdm
 
