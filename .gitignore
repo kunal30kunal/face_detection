@@ -1,0 +1,28 @@
+# Virtual environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Dataset & outputs
+my_dataset/
+outputs/
+images/
+temp_face.jpg
+temp_recognition.jpg
+
+# Training or large models
+face_recognizer.yml
+label_dict.pkl
+
+# Temporary files
+*.log
+*.tmp
+
+# PyCharm / IDE
+.idea/
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
